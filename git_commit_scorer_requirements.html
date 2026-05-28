@@ -1,0 +1,504 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body, .root {
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--color-text-primary);
+    background: transparent;
+  }
+
+  .header {
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--color-text-primary);
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-T { background: #7F77DD; }
+  .dot-F { background: #1D9E75; }
+  .dot-L { background: #EF9F27; }
+  .dot-shared { background: var(--color-border-primary); }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--color-border-secondary);
+    background: transparent;
+    font-size: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.15s;
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+  }
+
+  .section { margin-bottom: 12px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--color-background-secondary);
+    border-radius: 8px 8px 0 0;
+    border: 1px solid var(--color-border-tertiary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-header:hover { background: var(--color-background-tertiary); }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    flex: 1;
+  }
+
+  .section-path {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+  }
+
+  .section-chevron {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    transition: transform 0.2s;
+  }
+
+  .section-chevron.open { transform: rotate(90deg); }
+
+  .files-list {
+    border: 1px solid var(--color-border-tertiary);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+  }
+
+  .file-row {
+    display: grid;
+    grid-template-columns: 200px 60px 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    transition: background 0.1s;
+  }
+
+  .file-row:last-child { border-bottom: none; }
+  .file-row:hover { background: var(--color-background-secondary); }
+
+  .file-row.hidden { display: none; }
+
+  .file-name {
+    padding: 8px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--color-text-primary);
+    border-right: 1px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    word-break: break-all;
+  }
+
+  .owner-cell {
+    padding: 8px 8px;
+    border-right: 1px solid var(--color-border-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .owner-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-T { background: #EEEDFE; color: #3C3489; }
+  .badge-F { background: #E1F5EE; color: #085041; }
+  .badge-L { background: #FAEEDA; color: #633806; }
+  .badge-shared { background: var(--color-background-secondary); color: var(--color-text-secondary); border: 1px solid var(--color-border-secondary); }
+
+  @media (prefers-color-scheme: dark) {
+    .badge-T { background: #26215C; color: #CECBF6; }
+    .badge-F { background: #04342C; color: #9FE1CB; }
+    .badge-L { background: #412402; color: #FAC775; }
+  }
+
+  .file-desc {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 200px 60px 1fr;
+    padding: 6px 0;
+    margin-bottom: 4px;
+  }
+
+  .th-cell {
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .collapsed .files-list { display: none; }
+  .collapsed .section-header { border-radius: 8px; }
+
+  .file-icon { color: var(--color-text-tertiary); font-size: 11px; }
+
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 12px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+
+  .stat { text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 600; color: var(--color-text-primary); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+</style>
+
+<div class="root">
+  <div class="header">
+    <h1>Git Commit Quality Scorer — File Requirements</h1>
+    <p>Ownership map &amp; content spec for every file in the project</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" id="total-count">0</div><div class="stat-label">Total files</div></div>
+    <div class="stat"><div class="stat-num" style="color:#7F77DD">—</div><div class="stat-label">Tolulope (T)</div></div>
+    <div class="stat"><div class="stat-num" style="color:#1D9E75">—</div><div class="stat-label">Fowoyemi (F)</div></div>
+    <div class="stat"><div class="stat-num" style="color:#EF9F27">—</div><div class="stat-label">Light (L)</div></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="dot dot-T"></div> Tolulope — architecture, scoring engine, AI integration, testing</div>
+    <div class="legend-item"><div class="dot dot-F"></div> Fowoyemi — GitHub API, backend routes, contributor aggregation</div>
+    <div class="legend-item"><div class="dot dot-L"></div> Light — frontend, UI components, charts, export</div>
+    <div class="legend-item"><div class="dot dot-shared"></div> Shared / all team</div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterFiles('all')">All</button>
+    <button class="filter-btn" onclick="filterFiles('T')">Tolulope</button>
+    <button class="filter-btn" onclick="filterFiles('F')">Fowoyemi</button>
+    <button class="filter-btn" onclick="filterFiles('L')">Light</button>
+  </div>
+
+  <div class="table-header">
+    <div class="th-cell">File</div>
+    <div class="th-cell">Owner</div>
+    <div class="th-cell">Contents / responsibility</div>
+  </div>
+
+  <div id="sections-container"></div>
+</div>
+
+<script>
+const data = [
+  {
+    section: "Root", path: "/",
+    files: [
+      { name: "README.md", owner: "shared", desc: "Project overview, setup instructions, team credits, demo screenshots, API key config guide." },
+      { name: ".gitignore", owner: "shared", desc: "Ignore .env, __pycache__, node_modules, dist/, .venv, *.pyc." },
+    ]
+  },
+  {
+    section: "docs/", path: "docs/",
+    files: [
+      { name: "architecture.md", owner: "T", desc: "System design diagram, data flow from GitHub API → scoring pipeline → frontend, tech stack decisions and rationale." },
+      { name: "api-contracts.md", owner: "T", desc: "All endpoint definitions: request/response shapes, error codes, query params. Source of truth for Fowoyemi (backend) and Light (frontend integration)." },
+      { name: "scoring-rules.md", owner: "T", desc: "Full specification of rule weights, conventional commit regex patterns, penalty logic, composite score formula, and LLM prompt template." },
+      { name: "presentation-notes.md", owner: "shared", desc: "Demo script, slide talking points, known limitations, stretch features not completed." },
+    ]
+  },
+  {
+    section: "backend/app/", path: "backend/app/",
+    files: [
+      { name: "main.py", owner: "F", desc: "FastAPI app instantiation, CORS middleware, router registration, lifespan events (startup cache warmup)." },
+    ]
+  },
+  {
+    section: "backend/app/api/routes/", path: "backend/app/api/routes/",
+    files: [
+      { name: "analyze.py", owner: "F", desc: "POST /analyze endpoint. Accepts repo URL, triggers full pipeline: fetch → score → aggregate. Returns scored commit list + contributor summary." },
+      { name: "commits.py", owner: "F", desc: "GET /commits endpoint. Returns paginated, filtered commit list for a previously analyzed repo. Supports filter by author, date range, score tier." },
+      { name: "leaderboard.py", owner: "F", desc: "GET /leaderboard endpoint. Returns ranked contributor list with aggregate stats: avg score, commit count, best/worst commit." },
+      { name: "reports.py", owner: "F", desc: "GET /reports/{repo_id}/export endpoint. Triggers report generation (PDF or shareable URL). Delegates to export_service." },
+    ]
+  },
+  {
+    section: "backend/app/api/", path: "backend/app/api/",
+    files: [
+      { name: "dependencies.py", owner: "F", desc: "FastAPI dependency injection: GitHub service instance, rate limiter, cache client, optional auth token validation." },
+    ]
+  },
+  {
+    section: "backend/app/services/", path: "backend/app/services/",
+    files: [
+      { name: "github_service.py", owner: "F", desc: "GitHub REST API client. Fetches last N commits, handles pagination, parses author/email/timestamp/message from payload. No auth required for public repos." },
+      { name: "scoring_service.py", owner: "T", desc: "Orchestrates scoring pipeline per commit: calls rule engine, conventional commits detector, LLM service, language checker. Assembles composite score with breakdown dict." },
+      { name: "llm_service.py", owner: "T", desc: "Azure OpenAI GPT-4o client. Sends commit message with structured prompt, parses JSON response: {specificity, imperative, why_not_what, semantic_score}. Handles retries and token limits." },
+      { name: "analytics_service.py", owner: "F", desc: "Aggregates per-commit scores into contributor profiles and timeline series. Normalises contributor identities (email deduplication). Produces data for leaderboard and chart endpoints." },
+      { name: "export_service.py", owner: "T", desc: "Generates shareable report: PDF via ReportLab or HTML snapshot. Includes leaderboard, hall of fame/shame cards, score breakdown table." },
+    ]
+  },
+  {
+    section: "backend/app/scoring/", path: "backend/app/scoring/",
+    files: [
+      { name: "rules.py", owner: "T", desc: "Deterministic rule engine. Checks: message length (too short/too long), casing, ending punctuation, missing imperative verb, presence of generic words. Returns {rule_name: penalty} dict." },
+      { name: "conventional_commits.py", owner: "T", desc: "Regex-based detector for feat:/fix:/chore:/docs:/refactor:/perf:/test: prefixes. Awards bonus points. Flags BREAKING CHANGE notation. Returns {type, scope, breaking, bonus}." },
+      { name: "generic_words.py", owner: "T", desc: "Curated list of penalised generic terms: 'fix', 'wip', 'update', 'stuff', 'things', 'misc', 'final', 'FINAL'. Weighted penalty per match. Importable constant." },
+      { name: "composite_score.py", owner: "T", desc: "Combines rule score, conventional commit bonus, LLM semantic score, language penalty into a single 0–100 float. Applies configurable weights from settings. Returns score + full breakdown." },
+    ]
+  },
+  {
+    section: "backend/app/models/", path: "backend/app/models/",
+    files: [
+      { name: "commit.py", owner: "T", desc: "Pydantic model: CommitIn (raw GitHub payload) and CommitScored (with score, breakdown, llm_analysis, language_flag, conventional_type)." },
+      { name: "contributor.py", owner: "F", desc: "Pydantic model: Contributor — normalised identity, commit count, avg/min/max score, best_commit_sha, worst_commit_sha, timeline list." },
+      { name: "report.py", owner: "T", desc: "Pydantic model: ReportOutput — repo metadata, generated_at, leaderboard, hall_of_fame list, hall_of_shame list, score_timeline, export_url." },
+    ]
+  },
+  {
+    section: "backend/app/utils/", path: "backend/app/utils/",
+    files: [
+      { name: "parser.py", owner: "F", desc: "Parses raw GitHub repo URL into {owner, repo} tuple. Validates format, strips trailing slashes, handles github.com vs API URL forms." },
+      { name: "normalizer.py", owner: "F", desc: "Identity normalisation: maps multiple (name, email) pairs from the same contributor to a canonical identity using email as primary key." },
+      { name: "cache.py", owner: "T", desc: "Simple in-memory TTL cache (or Redis adapter). Caches GitHub API responses and scoring results keyed by repo+commit_sha. Avoids redundant LLM calls." },
+      { name: "helpers.py", owner: "shared", desc: "Miscellaneous utilities: timestamp formatting, safe JSON parsing, truncate string, slugify repo name for filenames." },
+    ]
+  },
+  {
+    section: "backend/app/config/", path: "backend/app/config/",
+    files: [
+      { name: "settings.py", owner: "T", desc: "Pydantic BaseSettings: AZURE_OPENAI_KEY, AZURE_OPENAI_ENDPOINT, AZURE_TEXT_ANALYTICS_KEY, GITHUB_TOKEN (optional), SCORE_WEIGHTS dict, N_COMMITS default, CACHE_TTL. Reads from .env." },
+    ]
+  },
+  {
+    section: "backend/app/tests/", path: "backend/app/tests/",
+    files: [
+      { name: "test_rules.py", owner: "T", desc: "Unit tests for rules.py, conventional_commits.py, composite_score.py. Covers edge cases: empty message, emoji-only, 1-char message, valid conventional commit, generic-word combos." },
+      { name: "test_api.py", owner: "T", desc: "Integration tests for all FastAPI endpoints using TestClient. Mocks github_service and llm_service. Tests happy path, invalid URL, missing repo, rate limit handling." },
+      { name: "test_scoring.py", owner: "T", desc: "End-to-end scoring pipeline test on sample_commits.json. Asserts composite score is within expected range for known good/bad messages." },
+    ]
+  },
+  {
+    section: "backend/", path: "backend/",
+    files: [
+      { name: "requirements.txt", owner: "T", desc: "Python dependencies: fastapi, uvicorn, httpx, pydantic-settings, openai, azure-ai-textanalytics, reportlab, python-dotenv, pytest." },
+      { name: ".env", owner: "shared", desc: "Local secrets (git-ignored). Template with placeholder keys: AZURE_OPENAI_KEY, AZURE_OPENAI_ENDPOINT, AZURE_TEXT_ANALYTICS_KEY, GITHUB_TOKEN." },
+    ]
+  },
+  {
+    section: "frontend/src/components/", path: "frontend/src/components/",
+    files: [
+      { name: "RepoInput.jsx", owner: "L", desc: "Repo URL input field with validation, submit button, loading state. Calls analyze API on submit, surfaces error messages inline." },
+      { name: "ScoreCard.jsx", owner: "L", desc: "Per-commit score display: overall score badge, rule breakdown accordion (each rule → penalty/bonus), LLM analysis summary, conventional commit badge." },
+      { name: "CommitTable.jsx", owner: "L", desc: "Paginated table of all commits: hash, author avatar, message truncated, score badge, timestamp. Sortable by score or date. Row click expands ScoreCard." },
+      { name: "Leaderboard.jsx", owner: "L", desc: "Ranked list of contributors: rank number, avatar, name, avg score bar, commit count, best score, worst score. Highlighting for top 3." },
+      { name: "TimelineChart.jsx", owner: "L", desc: "Line chart (Recharts) of score-over-time per contributor or team average. X-axis: commit date, Y-axis: score 0–100. Tooltip shows commit message on hover." },
+      { name: "HallOfShame.jsx", owner: "L", desc: "Card grid for worst-scoring commits. Each card: commit message, author, score, score breakdown pills. Styled for shareability (copyable link)." },
+      { name: "LoadingSpinner.jsx", owner: "L", desc: "Animated loading indicator used during API fetch. Accepts a message prop ('Fetching commits…', 'Scoring with GPT-4o…')." },
+    ]
+  },
+  {
+    section: "frontend/src/pages/", path: "frontend/src/pages/",
+    files: [
+      { name: "Home.jsx", owner: "L", desc: "Landing page: hero text, RepoInput component, short explainer of what the tool does, example score card." },
+      { name: "Dashboard.jsx", owner: "L", desc: "Main results view: Leaderboard, CommitTable, TimelineChart, HallOfShame. Tabbed or scrollable layout. Gated behind successful analysis." },
+    ]
+  },
+  {
+    section: "frontend/src/services/", path: "frontend/src/services/",
+    files: [
+      { name: "api.js", owner: "L", desc: "Axios/fetch wrapper for all backend calls: analyzeRepo(url), getCommits(repoId, page), getLeaderboard(repoId), exportReport(repoId). Centralized base URL + error handling." },
+    ]
+  },
+  {
+    section: "frontend/src/hooks/", path: "frontend/src/hooks/",
+    files: [
+      { name: "useAnalysis.js", owner: "L", desc: "React hook managing analysis state: loading, error, commits, leaderboard, timeline. Calls api.js, exposes refetch. Used by Dashboard and Home." },
+    ]
+  },
+  {
+    section: "frontend/src/utils/", path: "frontend/src/utils/",
+    files: [
+      { name: "formatters.js", owner: "L", desc: "Pure utility functions: formatScore(n) → color class, truncateMessage(str, len), formatDate(iso), scoreToGrade(n) → A/B/C/D/F." },
+    ]
+  },
+  {
+    section: "frontend/src/styles/", path: "frontend/src/styles/",
+    files: [
+      { name: "globals.css", owner: "L", desc: "Global CSS: font imports, CSS variables for score color ramp (green→red), base reset, score badge classes, shared card/table styles." },
+    ]
+  },
+  {
+    section: "frontend/src/", path: "frontend/src/",
+    files: [
+      { name: "App.jsx", owner: "L", desc: "Root component: React Router setup, routes for / (Home) and /dashboard/:repoId (Dashboard). Global error boundary." },
+      { name: "main.jsx", owner: "L", desc: "Vite entry point: ReactDOM.createRoot, wraps App in StrictMode, mounts to #root." },
+    ]
+  },
+  {
+    section: "frontend/", path: "frontend/",
+    files: [
+      { name: "package.json", owner: "L", desc: "Node deps: react, react-dom, react-router-dom, recharts, axios, tailwindcss. Dev deps: vite, @vitejs/plugin-react, eslint." },
+      { name: "vite.config.js", owner: "L", desc: "Vite config: React plugin, proxy /api → localhost:8000 for local dev, build output dir." },
+    ]
+  },
+  {
+    section: "sample_data/", path: "sample_data/",
+    files: [
+      { name: "sample_commits.json", owner: "F", desc: "50–100 realistic commit objects (fetched from a real public repo or hand-crafted). Mix of good, bad, conventional, generic messages. Used in tests and demo." },
+      { name: "sample_analysis.json", owner: "T", desc: "Pre-scored version of sample_commits.json with all fields populated. Used for frontend development without hitting live APIs." },
+    ]
+  },
+  {
+    section: "scripts/", path: "scripts/",
+    files: [
+      { name: "seed_data.py", owner: "F", desc: "Fetches real commits from a chosen public repo via GitHub API, writes to sample_commits.json. One-time setup script." },
+      { name: "demo_runner.py", owner: "T", desc: "CLI script that runs the full scoring pipeline on sample_commits.json and prints a formatted leaderboard to terminal. Used in presentation demos." },
+    ]
+  },
+];
+
+function ownerLabel(o) {
+  if (o === 'shared') return '<span class="owner-badge badge-shared">All</span>';
+  return `<span class="owner-badge badge-${o}">${o === 'T' ? 'Tolu' : o === 'F' ? 'Fowo' : 'Light'}</span>`;
+}
+
+function renderSections(filter) {
+  const container = document.getElementById('sections-container');
+  container.innerHTML = '';
+  let total = 0, counts = {T:0,F:0,L:0,shared:0};
+
+  data.forEach((section, si) => {
+    const relevant = section.files.filter(f => filter === 'all' || f.owner === filter);
+    if (relevant.length === 0) return;
+
+    const div = document.createElement('div');
+    div.className = 'section';
+
+    div.innerHTML = `
+      <div class="section-header" onclick="toggleSection(${si})">
+        <span class="section-title">${section.section}</span>
+        <span class="section-path">${relevant.length} file${relevant.length !== 1 ? 's' : ''}</span>
+        <span class="section-chevron open" id="chev-${si}">▶</span>
+      </div>
+      <div class="files-list" id="flist-${si}">
+        ${section.files.map(f => `
+          <div class="file-row${(filter !== 'all' && f.owner !== filter) ? ' hidden' : ''}">
+            <div class="file-name"><span class="file-icon">◻</span>${f.name}</div>
+            <div class="owner-cell">${ownerLabel(f.owner)}</div>
+            <div class="file-desc">${f.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    container.appendChild(div);
+    section.files.forEach(f => { total++; counts[f.owner]++; });
+  });
+
+  document.getElementById('total-count').textContent = filter === 'all' ? total : data.flatMap(s => s.files).filter(f => f.owner === filter).length;
+  const statNums = document.querySelectorAll('.stat-num');
+  if (filter === 'all') {
+    statNums[1].textContent = counts.T;
+    statNums[2].textContent = counts.F;
+    statNums[3].textContent = counts.L;
+  } else {
+    statNums[1].textContent = filter === 'T' ? counts.T : '—';
+    statNums[2].textContent = filter === 'F' ? counts.F : '—';
+    statNums[3].textContent = filter === 'L' ? counts.L : '—';
+  }
+}
+
+function toggleSection(si) {
+  const flist = document.getElementById('flist-' + si);
+  const chev = document.getElementById('chev-' + si);
+  const section = flist.closest('.section');
+  const isOpen = chev.classList.contains('open');
+  if (isOpen) {
+    flist.style.display = 'none';
+    chev.classList.remove('open');
+    section.querySelector('.section-header').style.borderRadius = '8px';
+  } else {
+    flist.style.display = '';
+    chev.classList.add('open');
+    section.querySelector('.section-header').style.borderRadius = '8px 8px 0 0';
+  }
+}
+
+let currentFilter = 'all';
+function filterFiles(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderSections(f);
+}
+
+renderSections('all');
+</script>
